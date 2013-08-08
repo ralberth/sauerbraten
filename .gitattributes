@@ -1,0 +1,10 @@
+* text=auto
+
+Modulefile text
+.gitattributes text
+.gitignore text
+
+*.md text
+*.erb text
+*.pp text
+*.bin binary

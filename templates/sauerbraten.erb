@@ -1,0 +1,112 @@
+#! /bin/bash
+#
+# chkconfig: 2345 81 11
+# config: <%= @install_root %>/sauerbraten/server-init.cfg
+
+. /etc/rc.d/init.d/functions
+
+SAUER_DATA=<%= @install_root %>/sauerbraten
+
+if [ ! -f "$SAUER_DATA/server-init.cfg" ]; then
+   echo "sauerbraten: file $SAUER_DATA/server-init.cfg does not exist."
+   exit 6
+fi
+
+case "`uname -m`" in
+   i486|i586|i686)
+      MACHINE_NAME=
+      ;;
+   x86_64|amd64)
+      MACHINE_NAME=64_
+      ;;
+   *)
+      echo "Not i486,i586,i686,x86_64 or amd64"
+      exit 5
+      ;;
+esac
+
+EXE=linux_${MACHINE_NAME}server
+
+
+start() {
+   echo -n "Start sauerbraten:"
+
+   pid=$(pidof $EXE)
+   if [ -n "$pid" ]; then
+      echo -n " already running, pid $pid"
+      warning
+      echo
+      exit 2
+   fi
+
+   SAUER_USER="<%= @run_as %>"
+   SAUER_LOG=/var/log/sauerbraten.log
+   SAUER_OPTIONS="-g$SAUER_LOG"
+
+   CMD="$SAUER_DATA/$EXE"
+   if [ ! -x $CMD ]; then
+      echo -n " executable not found"
+      failure
+      echo
+      exit 3
+   fi
+
+   daemon --user=$SAUER_USER $CMD "$SAUER_OPTIONS </dev/null 2>&1 >>$SAUER_LOG &"
+
+   # Give it a chance to get started
+   sleep 2
+
+   # Still there?
+   pid=$(pidof $EXE)
+   [ -n "$pid" ] && success || failure
+   echo
+}
+
+
+stop() {
+   echo -n "Stopping Sauerbraten:"
+
+   pid=$(pidof $EXE)
+   if [ -n "$pid" ]; then
+      kill $pid
+      [ "$?" -eq 0 ] && success || failure
+   else
+      echo -n " (not running)"
+      success
+   fi
+
+   echo
+}
+
+case "$1" in
+   start)
+      start
+      ;;
+
+   stop)
+      stop
+      ;;
+
+   status)
+      pid=$(pidof $EXE)
+      if [ -n "$pid" ]; then
+         echo "Sauerbraten running as pid $pid"
+         rc=0
+      else
+         echo "Sauerbraten not running"
+         rc=1
+      fi
+      ;;
+
+   restart)
+      stop
+      start
+      ;;
+
+   *)
+      echo $"Usage: $0 {start|stop|status|restart}"
+      rc=2
+esac
+
+exit $rc
+

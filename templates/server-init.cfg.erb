@@ -1,0 +1,33 @@
+maxclients <%= @maxclients %>
+serverbotlimit 10
+publicserver 0
+serverdesc "<%= @description %>"
+
+// controls whether or not the server reports to the masterserver
+updatemaster 0
+
+// optional message of the day to send to players on connect
+servermotd "<%= @motd %>"
+
+// controls whether admin privs are necessary to pause a game
+// when 1 requires admin (default)
+// when 0 only requires master
+restrictpausegame 0
+
+ffamaps     = [ <%= @ffa_maps %> ]
+capturemaps = [ <%= @capture_maps %> ]
+ctfmaps     = [ <%= @ctf_maps %> ]
+spmaprot    = [ <%= @sp_maps %> ]
+
+maprotationreset
+maprotation "*" $ffamaps
+maprotation "?capture ?hold" $capturemaps
+maprotation "?ctf ?protect ?collect" $ctfmaps
+maprotation "SP" $spmaprot
+maprotation "DMSP" $ffamaps
+
+teamkillkickreset
+teamkillkick "*" 7 30
+teamkillkick "?capture" 10 30
+
+<%= @append_cfg %>
